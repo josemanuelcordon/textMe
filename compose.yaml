@@ -1,54 +1,39 @@
 version: "3.7"
 services:
-  php:
-    container_name: php
-    image: php
+  www:
+    build: .
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./public/:/var/www/html
+      - ./:/var/www
     depends_on:
       - database
-      - mercure
-    restart: unless-stopped
-    environment:
-      APP_ENV: dev
-      MERCURE_PUBLISH_URL: http://mercure/.well-known/mercure
-    healthcheck:
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    networks:
-      - dev
-
-  nginx:
-    image: nginx
-    depends_on:
-      - php
-    ports:
-      - "8000:80"
-    networks:
-      - dev
 
   database:
     image: mariadb
     container_name: mariadb
-    restart: unless-stopped
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: example_password
-      MYSQL_DATABASE: example_database
-      MYSQL_USER: example_user
-      MYSQL_PASSWORD: example_password
-    networks:
-      - dev
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: textMe
+      MARIADB_USER: root
+      MARIADB_PASSWORD: root
+    ports:
+      - 3306:3306
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
-    restart: unless-stopped
+    restart: always
     environment:
-      PMA_HOST: database
-      PMA_PORT: 3306
+      PMA_HOST: mariadb
+      PMA_PORT: "3306"
     ports:
-      - "8080:80"
-    networks:
-      - dev
+      - "8081:80"
+    depends_on:
+      - database
 
   mercure:
     image: dunglas/mercure
@@ -64,9 +49,6 @@ services:
       - mercure_config:/config
     ports:
       - 8001:80
-
-networks:
-  dev:
 
 volumes:
   mercure_data:
